@@ -33,10 +33,16 @@ def fetch_and_export_data(hf_repo_id: str, output_filepath: str) -> None:
     print(f"Success! Exported {len(df)} rows to {output_filepath}")
 
 if __name__ == "__main__":
-    # Define parameters based on the project requirements
-    DATASET_NAME: str = "sammshen/lmcache-agentic-traces"
     
-    # We use data/raw/ as the destination to separate raw telemetry logs from processed data
-    OUTPUT_CSV_PATH: str = "../../data/raw/lmcache_agentic_traces.csv"
+    # 1. Get the exact directory where this script lives
+    script_dir: str = os.path.dirname(os.path.abspath(__file__))
+    
+    # 2. Build the path dynamically: go up two levels, then into data/raw/
+    raw_path: str = os.path.join(script_dir, "../../data/raw/lmcache_agentic_traces.csv")
+    
+    # 3. Clean up the path format for your operating system
+    OUTPUT_CSV_PATH: str = os.path.abspath(raw_path)
+    
+    DATASET_NAME: str = "sammshen/lmcache-agentic-traces"
     
     fetch_and_export_data(hf_repo_id=DATASET_NAME, output_filepath=OUTPUT_CSV_PATH)
