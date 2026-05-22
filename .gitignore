@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Custom DATN Project Data Exclusions
+data/raw/
+data/processed/
