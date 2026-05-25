@@ -20,13 +20,6 @@ def calculate_turn_cost(model: str, input_tokens: int, output_tokens: int) -> fl
     
     return (input_tokens * input_price_per_token) + (output_tokens * output_price_per_token)
 
-def extract_tool_called(text: str) -> str:
-    """Extracts the tool name from the OpenHands <function=...> tag."""
-    if not isinstance(text, str):
-        return "none"
-    match = re.search(r'<function=([^>]+)>', text)
-    return match.group(1) if match else "none"
-
 def check_for_errors(text: str) -> int:
     """Scans for common execution failure keywords."""
     if not isinstance(text, str):
@@ -48,9 +41,6 @@ def process_agentic_traces(input_filepath: str, output_filepath: str, chunk_size
         print(f"Processing Chunk {chunk_idx + 1}...")
         
         # --- NEW EXTRACTION LOGIC ---
-        # Extract tool_called
-        chunk['tool_called'] = chunk['input'].apply(extract_tool_called)
-        
         # Extract has_error flag
         chunk['has_error'] = chunk['input'].apply(check_for_errors)
         
