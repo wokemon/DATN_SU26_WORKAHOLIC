@@ -6,8 +6,8 @@ import pandas as pd
 # phase and allows for fast vectorized cost calculations.
 MODEL_PRICING: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
-    "minimax-m2.5": (0.10, 0.20),
-    "deepseek-v3.1": (0.14, 0.28),
+    "minimax-m2.5": (0.15, 1.15),
+    "deepseek-v3.1": (0.21, 0.28),
     "default": (1.00, 2.00) # Fallback pricing
 }
 
