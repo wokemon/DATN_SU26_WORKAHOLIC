@@ -46,3 +46,35 @@ Dự án tập trung xây dựng hệ thống báo cáo Business Intelligence (B
 ├── requirements.txt          # Danh sách thư viện Python
 └── CLAUDE.md                 # Tài liệu hướng dẫn phát triển (File này)
 ```
+
+## 🚀 Hướng dẫn Cài đặt & Khởi chạy (Setup & Run Instructions)
+
+### 1. Yêu cầu hệ thống (Prerequisites)
+
+Before cloning, ensure your system meets the following requirements:
+
+- **Python 3.9+**
+- **Git**
+- **Local Storage:** At least 3GB of free space to accommodate the raw telemetry logs.
+
+### 2. Clone Repository & Cài đặt Môi trường (Clone & Environment Setup)
+
+Vì dự án xử lý lượng dữ liệu lớn, bạn bắt buộc phải sử dụng môi trường ảo (virtual environment) để cô lập các dependencies.
+
+```bash
+# Clone the repository
+git clone <your-repository-url>
+cd <your-repository-folder>
+
+# Initialize the Virtual Environment
+python -m venv venv
+
+# Activate the Virtual Environment
+# Cho Mac/Linux:
+source venv/bin/activate
+# Cho Windows:
+venv\Scripts\activate
+
+# Cài đặt thư viện (Install Dependencies)
+pip install -r requirements.txt
+```
