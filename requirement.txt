@@ -1,0 +1,27 @@
+# ==========================================
+# DATN Project: AI Agent Telemetry Pipeline
+# ==========================================
+
+# 1. Data Extraction
+# Required to pull the sammshen/lmcache-agentic-traces dataset from Hugging Face
+datasets
+
+# 2. Data Transformation & ETL
+# Used for flattening JSON, chunking the 2.37GB file, and engineering features
+pandas
+polars
+
+# 3. Machine Learning & Predictive Modeling
+# Core ML libraries for K-Means clustering, Random Forest, and Regression
+scikit-learn
+
+# Advanced forecasting for cumulative session costs
+xgboost
+
+# Time Series analysis for latency/pre_gap variance
+statsmodels
+prophet
+
+# Deep Learning framework for LSTM (Latency spike forecasting)
+torch 
+# Note: You can swap `torch` with `tensorflow` if you prefer building your LSTM in Keras.
