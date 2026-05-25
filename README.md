@@ -51,11 +51,11 @@ Dự án tập trung xây dựng hệ thống báo cáo Business Intelligence (B
 
 ### 1. Yêu cầu hệ thống (Prerequisites)
 
-Before cloning, ensure your system meets the following requirements:
+Trước khi clone, đảm bảo hệ thống của bạn có:
 
 - **Python 3.9+**
 - **Git**
-- **Local Storage:** At least 3GB of free space to accommodate the raw telemetry logs.
+- **Local Storage:** Tối thiểu có 3GB trống để chứa dữ liệu Telemetry.
 
 ### 2. Clone Repository & Cài đặt Môi trường (Clone & Environment Setup)
 
