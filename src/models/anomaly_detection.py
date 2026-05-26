@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
+import matplotlib.pyplot as plt
 
 def prepare_sequential_data(df: pd.DataFrame, sequence_length: int = 3):
     """
@@ -84,8 +85,8 @@ def build_and_train_lstm(X_train, y_train, X_test, y_test, sequence_length: int,
 
 def detect_anomalies(model, X, y_actual, scaler):
     """
-    Uses the trained LSTM to forecast latency. If the actual latency is wildly higher 
-    than the forecast, it flags the step as an 'Anomaly' (Performance Bottleneck).
+    Uses the trained LSTM to forecast latency and generates a visual plot 
+    of the dynamic threshold and flagged bottlenecks.
     """
     print("\nRunning Anomaly Detection...")
     
@@ -96,7 +97,6 @@ def detect_anomalies(model, X, y_actual, scaler):
     errors = np.abs(y_actual - y_pred)
     
     # Dynamic Anomaly Threshold: Mean error + 3 Standard Deviations
-    # Mathematically isolates the extreme outliers (bottlenecks)
     threshold = np.mean(errors) + (3 * np.std(errors))
     print(f"Dynamic Anomaly Threshold calculated at: {threshold:.4f} (Scaled Error)")
     
@@ -109,6 +109,37 @@ def detect_anomalies(model, X, y_actual, scaler):
     print(f"Total Turn Sequences Analyzed: {len(y_actual)}")
     print(f"Severe Latency Spikes Detected: {anomaly_count} ({anomaly_percentage:.2f}% of all turns)")
     print("Conclusion: These flagged turns represent critical points where the AI Agent's tool execution stalled.")
+
+    # --- VISUALIZATION CODE ---
+    print("\nGenerating Anomaly Plot...")
+    plt.figure(figsize=(14, 6))
+    
+    # Plot the prediction error for every single turn
+    plt.plot(errors, label='Prediction Error (Actual vs Expected Latency)', color='#1f77b4', alpha=0.7)
+    
+    # Draw the dynamic threshold line
+    plt.axhline(y=threshold, color='red', linestyle='--', linewidth=2, label=f'Threshold Cutoff ({threshold:.4f})')
+    
+    # Highlight the 16 exact points that crossed the threshold
+    anomaly_indices = np.where(anomalies)[0]
+    plt.scatter(anomaly_indices, errors[anomalies], color='red', s=60, label='Detected Bottleneck', zorder=5)
+    
+    # Formatting the chart for the thesis
+    plt.title('LSTM Anomaly Detection: AI Agent Latency Bottlenecks', fontsize=16, fontweight='bold')
+    plt.xlabel('Turn Sequence (Time)', fontsize=12)
+    plt.ylabel('Prediction Error (Scaled)', fontsize=12)
+    plt.legend(loc='upper right')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    
+    # Save the plot automatically
+    import os
+    plot_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lstm_bottlenecks.png")
+    plt.savefig(plot_path, dpi=300)
+    print(f"✅ Plot successfully saved to: {plot_path}")
+    
+    # Display the plot on your screen
+    plt.show()
 
 if __name__ == "__main__":
     # 1. Paths
