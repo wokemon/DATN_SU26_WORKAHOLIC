@@ -221,6 +221,67 @@ class TelemetryEDA:
         # Flag stuck sessions (e.g., hit 50 turns)
         stuck_sessions = session_stats[session_stats['total_turns'] >= 50]
         logging.info(f"Identified {len(stuck_sessions)} sessions that hit the 50-turn cap (likely stuck loops).")
+        
+    def analyze_session_length_by_source(self):
+        """
+        Plots the distribution of total turns per session, split by source dataset.
+        X-axis: Total Turns
+        Y-axis: Number of Sessions
+        """
+        logging.info("Generating Session Length Distribution by Source plot...")
+        
+        if 'source' not in self.df.columns or 'turn_number' not in self.df.columns or 'session_id' not in self.df.columns:
+            logging.warning("Missing required columns. Skipping plot.")
+            return
+
+        # 1. THE FIX: Group by session_id to get the MAX turn_number for each session
+        # This condenses the data so 1 row = 1 full session
+        session_lengths = self.df.groupby(['source', 'session_id'])['turn_number'].max().reset_index()
+        session_lengths.rename(columns={'turn_number': 'total_turns'}, inplace=True)
+
+        # 2. Setup the Subplots
+        sources = session_lengths['source'].dropna().unique()
+        num_sources = len(sources)
+        
+        fig, axes = plt.subplots(1, num_sources, figsize=(6 * num_sources, 6))
+        
+        # Ensure axes is iterable even if there's only 1 source
+        if num_sources == 1:
+            axes = [axes]
+
+        colors = ['skyblue', 'lightcoral', 'lightgreen']
+
+        # 3. Plot Each Source
+        for idx, source in enumerate(sources):
+            ax = axes[idx]
+            
+            # Filter the aggregated dataframe for the current source
+            subset = session_lengths[session_lengths['source'] == source]
+            turn_data = subset['total_turns'].dropna()
+            
+            # Calculate metrics (n = total sessions, not total rows)
+            session_count = len(turn_data)
+            mean_val = turn_data.mean()
+            median_val = turn_data.median()
+            
+            # Draw the histogram
+            sns.histplot(turn_data, bins=20, color=colors[idx % len(colors)], ax=ax)
+            
+            # Draw Mean and Median lines
+            ax.axvline(mean_val, color='red', linestyle='--', linewidth=2.5, label=f'Mean: {mean_val:.1f}')
+            ax.axvline(median_val, color='green', linestyle='-', linewidth=2.5, label=f'Median: {median_val:.1f}')
+            
+            # Format titles and labels
+            ax.set_title(f'Source: {source.capitalize()} (n={session_count} sessions)', fontsize=14, fontweight='bold')
+            ax.set_xlabel('Total Turns')
+            ax.set_ylabel('Number of Sessions')
+            ax.legend(loc='upper right')
+            
+        plt.tight_layout()
+        save_path = os.path.join(self.output_dir, 'session_length_by_source.png')
+        plt.savefig(save_path, dpi=300)
+        plt.close()
+        logging.info(f"Session length distribution plot saved to {save_path}")
 
     def run_pipeline(self):
         """Executes the full EDA pipeline."""
@@ -229,6 +290,7 @@ class TelemetryEDA:
         self.analyze_token_distribution()
         self.analyze_latency_bottlenecks()
         self.analyze_agent_efficiency()
+        self.analyze_session_length_by_source()
         logging.info(f"EDA Complete. All plots saved to {self.output_dir}")
 
 if __name__ == "__main__":
