@@ -24,27 +24,78 @@ class TelemetryEDA:
         logging.info(f"Loading data from {self.data_path}...")
         try:
             self.df = pd.read_csv(self.data_path)
+            
+            # Extract 'source' from 'session_id'
+            if 'session_id' in self.df.columns:
+                self.df['source'] = self.df['session_id'].str.split('__').str[0]
+                logging.info("Successfully extracted 'source' from 'session_id'.")
+            else:
+                logging.warning("'session_id' column not found. Cannot extract 'source'.")
+            
             logging.info(f"Data loaded successfully with {len(self.df)} records.")
         except Exception as e:
             logging.error(f"Failed to load data: {e}")
             raise
 
     def analyze_context_growth(self):
-        """Visualizes how input tokens grow as the turn number increases."""
-        logging.info("Analyzing context growth and token usage...")
-        if 'turn_number' not in self.df.columns or 'input_tokens' not in self.df.columns:
-            logging.warning("Missing 'turn_number' or 'input_tokens' columns. Skipping context growth analysis.")
+        """Visualizes how input tokens grow as the turn number increases, split into subplots by dataset source."""
+        logging.info("Analyzing context growth and token usage by dataset (Horizontal Subplots)...")
+        if not all(col in self.df.columns for col in ['turn_number', 'input_tokens', 'source']):
+            logging.warning("Missing 'turn_number', 'input_tokens', or 'source' columns. Skipping context growth analysis.")
             return
 
-        plt.figure(figsize=(10, 6))
-        sns.lineplot(data=self.df, x='turn_number', y='input_tokens', errorbar='sd')
-        plt.title('Context Explosion: Input Tokens vs. Turn Number')
-        plt.xlabel('Turn Number')
-        plt.ylabel('Input Tokens')
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'context_growth.png'))
-        plt.close()
+        # --- UPDATED: Horizontal layout, independent axes, same colors/styles ---
+        g = sns.relplot(
+            data=self.df, 
+            x='turn_number', 
+            y='input_tokens', 
+            col='source',       # Creates horizontal subplots side-by-side
+            hue='source',       # Keeps colors consistent for each source
+            kind='line', 
+            errorbar='sd',
+            height=5,           
+            aspect=1.2,
+            # This is the magic command to give each plot its own independent axes!
+            facet_kws={'sharey': False, 'sharex': False} 
+        )
         
+        # Customize overall figure layout and titles
+        g.fig.suptitle('Context Explosion: Input Tokens vs. Turn Number', y=1.05, fontsize=16)
+        g.set_titles(col_template="{col_name}")
+        
+        # Force axis labels to appear on EVERY individual subplot
+        for ax in g.axes.flat:
+            ax.set_xlabel('Turn Number')
+            ax.set_ylabel('Input Tokens')
+        
+        # Save the figure
+        plt.savefig(os.path.join(self.output_dir, 'context_growth.png'), bbox_inches='tight')
+        plt.close()
+        # ----------------------------------------------------------------------
+        
+    def analyze_token_distribution(self):
+        """Analyzes the distribution of input vs. output tokens."""
+        logging.info("Analyzing input vs. output token distribution...")
+        if not all(col in self.df.columns for col in ['input_tokens', 'output_tokens']):
+            logging.warning("Missing 'input_tokens' or 'output_tokens' columns. Skipping token distribution.")
+            return
+
+        # Melting the dataframe for side-by-side seaborn plotting
+        token_df = self.df[['input_tokens', 'output_tokens']].melt(
+            var_name='Token Type', value_name='Token Count'
+        )
+
+        plt.figure(figsize=(10, 6))
+        # Log scale boxplot to better visualize distributions without massive outliers warping the view
+        sns.boxplot(data=token_df, x='Token Type', y='Token Count', palette='Set2')
+        plt.yscale('log')
+        plt.title('Distribution: Input vs. Output Tokens (Log Scale)')
+        plt.ylabel('Token Count (Log Scale)')
+        plt.xlabel('')
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.output_dir, 'token_distribution.png'))
+        plt.close()
+
     def analyze_latency_bottlenecks(self):
         """Investigates latency (pre_gap) distributions using logarithmic scaling."""
         logging.info("Analyzing latency and performance bottlenecks (Log Scaled)...")
@@ -105,9 +156,19 @@ class TelemetryEDA:
         # Plot distribution of total turns
         plt.figure(figsize=(10, 6))
         sns.histplot(session_stats['total_turns'], bins=20, kde=True, color='teal')
+        
+        # Calculate Mean and Median
+        mean_turns = session_stats['total_turns'].mean()
+        median_turns = session_stats['total_turns'].median()
+        
+        # Add vertical lines for mean and median
+        plt.axvline(mean_turns, color='orange', linestyle='--', linewidth=2, label=f'Mean: {mean_turns:.1f}')
+        plt.axvline(median_turns, color='purple', linestyle='-', linewidth=2, label=f'Median: {median_turns:.1f}')
+        
         plt.title('Agent Efficiency: Total Turns Required per Session')
         plt.xlabel('Total Turns')
         plt.ylabel('Number of Sessions')
+        plt.legend()
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'turn_efficiency_distribution.png'))
         plt.close()
@@ -120,6 +181,7 @@ class TelemetryEDA:
         """Executes the full EDA pipeline."""
         self.load_data()
         self.analyze_context_growth()
+        self.analyze_token_distribution()
         self.analyze_latency_bottlenecks()
         self.analyze_agent_efficiency()
         logging.info(f"EDA Complete. All plots saved to {self.output_dir}")
