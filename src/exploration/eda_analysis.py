@@ -44,34 +44,48 @@ class TelemetryEDA:
             logging.warning("Missing 'turn_number', 'input_tokens', or 'source' columns. Skipping context growth analysis.")
             return
 
-        # --- UPDATED: Horizontal layout, independent axes, same colors/styles ---
+        # --- UPDATED: Removed main legend, added facet_kws for independent axes ---
         g = sns.relplot(
             data=self.df, 
             x='turn_number', 
             y='input_tokens', 
-            col='source',       # Creates horizontal subplots side-by-side
-            hue='source',       # Keeps colors consistent for each source
+            col='source',       
+            hue='source',       
             kind='line', 
             errorbar='sd',
             height=5,           
             aspect=1.2,
-            # This is the magic command to give each plot its own independent axes!
-            facet_kws={'sharey': False, 'sharex': False} 
+            facet_kws={'sharey': False, 'sharex': False}, 
+            legend=False  # Removes the redundant main side legend
         )
         
         # Customize overall figure layout and titles
         g.fig.suptitle('Context Explosion: Input Tokens vs. Turn Number', y=1.05, fontsize=16)
         g.set_titles(col_template="{col_name}")
         
-        # Force axis labels to appear on EVERY individual subplot
-        for ax in g.axes.flat:
+        # --- NEW ADDITION: Iterate through each subplot to add specific Mean/Median lines ---
+        for ax, source_name in zip(g.axes.flat, g.col_names):
             ax.set_xlabel('Turn Number')
             ax.set_ylabel('Input Tokens')
+            
+            # Filter the dataframe for the specific subplot's source
+            source_data = self.df[self.df['source'] == source_name]['input_tokens']
+            
+            # Calculate metrics
+            mean_tokens = source_data.mean()
+            median_tokens = source_data.median()
+            
+            # Draw horizontal lines for mean and median
+            ax.axhline(mean_tokens, color='orange', linestyle='--', linewidth=2, label=f'Mean: {mean_tokens:.0f}')
+            ax.axhline(median_tokens, color='purple', linestyle=':', linewidth=2, label=f'Median: {median_tokens:.0f}')
+            
+            # Add a small local legend inside each subplot just for the lines
+            ax.legend(loc='upper left', fontsize=10)
+        # ---------------------------------------------------------------------------------
         
         # Save the figure
         plt.savefig(os.path.join(self.output_dir, 'context_growth.png'), bbox_inches='tight')
         plt.close()
-        # ----------------------------------------------------------------------
         
     def analyze_token_distribution(self):
         """Analyzes the distribution of input vs. output tokens."""
