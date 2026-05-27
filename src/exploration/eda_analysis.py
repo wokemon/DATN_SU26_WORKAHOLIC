@@ -88,27 +88,56 @@ class TelemetryEDA:
         plt.close()
         
     def analyze_token_distribution(self):
-        """Analyzes the distribution of input vs. output tokens."""
-        logging.info("Analyzing input vs. output token distribution...")
-        if not all(col in self.df.columns for col in ['input_tokens', 'output_length']):
-            logging.warning("Missing 'input_tokens' or 'output_length' columns. Skipping token distribution.")
-            return
+        """
+        Plots the distribution of input vs output tokens using column plots (histograms),
+        divided into two side-by-side subplots with lines for Mean and Median.
+        """
+        logging.info("Generating Token Distribution Column Plots...")
+        
+        # Create a figure with two subplots side-by-side (1 row, 2 columns)
+        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
-        # Melting the dataframe for side-by-side seaborn plotting
-        token_df = self.df[['input_tokens', 'output_length']].melt(
-            var_name='Token Type', value_name='Token Count'
-        )
+        # ---------------------------------------------------------
+        # Subplot 1: Input Tokens (Column Plot)
+        # ---------------------------------------------------------
+        # Using histplot without KDE to render strict columns
+        sns.histplot(data=self.df, x='input_tokens', bins=40, color='skyblue', ax=axes[0])
+        
+        input_mean = self.df['input_tokens'].mean()
+        input_median = self.df['input_tokens'].median()
+        
+        # Draw Mean and Median lines
+        axes[0].axvline(input_mean, color='red', linestyle='--', linewidth=2.5, label=f'Mean: {input_mean:.0f}')
+        axes[0].axvline(input_median, color='green', linestyle='-', linewidth=2.5, label=f'Median: {input_median:.0f}')
+        
+        axes[0].set_title('Column Distribution: Input Tokens', fontsize=14, fontweight='bold')
+        axes[0].set_xlabel('Input Tokens')
+        axes[0].set_ylabel('Frequency (Count)')
+        axes[0].legend(loc='upper right')
 
-        plt.figure(figsize=(10, 6))
-        # Log scale boxplot to better visualize distributions without massive outliers warping the view
-        sns.boxplot(data=token_df, x='Token Type', y='Token Count', palette='Set2')
-        plt.yscale('log')
-        plt.title('Distribution: Input vs. Output Tokens (Log Scale)')
-        plt.ylabel('Token Count (Log Scale)')
-        plt.xlabel('')
+        # ---------------------------------------------------------
+        # Subplot 2: Output Tokens (Column Plot)
+        # ---------------------------------------------------------
+        sns.histplot(data=self.df, x='output_length', bins=40, color='lightcoral', ax=axes[1])
+        
+        output_mean = self.df['output_length'].mean()
+        output_median = self.df['output_length'].median()
+        
+        # Draw Mean and Median lines
+        axes[1].axvline(output_mean, color='red', linestyle='--', linewidth=2.5, label=f'Mean: {output_mean:.0f}')
+        axes[1].axvline(output_median, color='green', linestyle='-', linewidth=2.5, label=f'Median: {output_median:.0f}')
+        
+        axes[1].set_title('Column Distribution: Output Tokens', fontsize=14, fontweight='bold')
+        axes[1].set_xlabel('Output Tokens')
+        axes[1].set_ylabel('Frequency (Count)')
+        axes[1].legend(loc='upper right')
+
+        # Format and Save the plot
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'token_distribution.png'))
+        save_path = os.path.join(self.output_dir, 'token_column_distribution.png')
+        plt.savefig(save_path, dpi=300)
         plt.close()
+        logging.info(f"Column plot saved successfully to {save_path}")
 
     def analyze_latency_bottlenecks(self):
         """Investigates latency (pre_gap) distributions using logarithmic scaling."""
