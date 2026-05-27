@@ -9,7 +9,8 @@ datasets>=4.8.5
 # 2. Data Transformation & ETL
 # Used for flattening JSON, chunking the 2.37GB file, and engineering features
 pandas>=3.0.3
-polars>=1.41.0
+seaborn
+matplotlib
 
 # 3. Machine Learning & Predictive Modeling
 # Core ML libraries for K-Means clustering, Random Forest, and Regression
