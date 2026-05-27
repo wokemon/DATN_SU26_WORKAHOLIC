@@ -105,12 +105,13 @@ class TelemetryEDA:
         
         input_mean = self.df['input_tokens'].mean()
         input_median = self.df['input_tokens'].median()
+        input_count = self.df['input_tokens'].count()
         
         # Draw Mean and Median lines
         axes[0].axvline(input_mean, color='red', linestyle='--', linewidth=2.5, label=f'Mean: {input_mean:.0f}')
         axes[0].axvline(input_median, color='green', linestyle='-', linewidth=2.5, label=f'Median: {input_median:.0f}')
         
-        axes[0].set_title('Column Distribution: Input Tokens', fontsize=14, fontweight='bold')
+        axes[0].set_title(f'Input Tokens (n={input_count})', fontsize=14, fontweight='bold')
         axes[0].set_xlabel('Input Tokens')
         axes[0].set_ylabel('Frequency (Count)')
         axes[0].legend(loc='upper right')
@@ -122,12 +123,13 @@ class TelemetryEDA:
         
         output_mean = self.df['output_length'].mean()
         output_median = self.df['output_length'].median()
+        output_count = self.df['output_length'].count()
         
         # Draw Mean and Median lines
         axes[1].axvline(output_mean, color='red', linestyle='--', linewidth=2.5, label=f'Mean: {output_mean:.0f}')
         axes[1].axvline(output_median, color='green', linestyle='-', linewidth=2.5, label=f'Median: {output_median:.0f}')
         
-        axes[1].set_title('Column Distribution: Output Tokens', fontsize=14, fontweight='bold')
+        axes[1].set_title(f'Output Tokens (n={output_count})', fontsize=14, fontweight='bold')
         axes[1].set_xlabel('Output Tokens')
         axes[1].set_ylabel('Frequency (Count)')
         axes[1].legend(loc='upper right')
