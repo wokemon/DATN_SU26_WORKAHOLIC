@@ -119,7 +119,7 @@ class TelemetryEDA:
         # ---------------------------------------------------------
         # Subplot 2: Output Tokens (Column Plot)
         # ---------------------------------------------------------
-        sns.histplot(data=self.df, x='output_length', bins=40, color='lightcoral', ax=axes[1])
+        sns.histplot(data=self.df, x='output_length', bins=120, color='lightcoral', ax=axes[1], log_scale=True)
         
         output_mean = self.df['output_length'].mean()
         output_median = self.df['output_length'].median()
