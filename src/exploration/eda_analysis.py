@@ -90,12 +90,12 @@ class TelemetryEDA:
     def analyze_token_distribution(self):
         """Analyzes the distribution of input vs. output tokens."""
         logging.info("Analyzing input vs. output token distribution...")
-        if not all(col in self.df.columns for col in ['input_tokens', 'output_tokens']):
-            logging.warning("Missing 'input_tokens' or 'output_tokens' columns. Skipping token distribution.")
+        if not all(col in self.df.columns for col in ['input_tokens', 'output_length']):
+            logging.warning("Missing 'input_tokens' or 'output_length' columns. Skipping token distribution.")
             return
 
         # Melting the dataframe for side-by-side seaborn plotting
-        token_df = self.df[['input_tokens', 'output_tokens']].melt(
+        token_df = self.df[['input_tokens', 'output_length']].melt(
             var_name='Token Type', value_name='Token Count'
         )
 
