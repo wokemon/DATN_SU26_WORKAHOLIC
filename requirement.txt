@@ -4,24 +4,24 @@
 
 # 1. Data Extraction
 # Required to pull the sammshen/lmcache-agentic-traces dataset from Hugging Face
-datasets
+datasets>=4.8.5
 
 # 2. Data Transformation & ETL
 # Used for flattening JSON, chunking the 2.37GB file, and engineering features
-pandas
-polars
+pandas>=3.0.3
+polars>=1.41.0
 
 # 3. Machine Learning & Predictive Modeling
 # Core ML libraries for K-Means clustering, Random Forest, and Regression
-scikit-learn
+scikit-learn>=1.8.0
 
 # Advanced forecasting for cumulative session costs
-xgboost
+xgboost>=3.2.0
 
 # Time Series analysis for latency/pre_gap variance
-statsmodels
-prophet
+statsmodels>=0.14.6
+prophet>=1.3.0
 
 # Deep Learning framework for LSTM (Latency spike forecasting)
-torch 
+tensorflow>=2.7.0
 # Note: You can swap `torch` with `tensorflow` if you prefer building your LSTM in Keras.
