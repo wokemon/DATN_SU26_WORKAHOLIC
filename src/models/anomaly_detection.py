@@ -134,7 +134,7 @@ def detect_anomalies(model, X, y_actual, scaler):
     
     # Save the plot automatically
     import os
-    plot_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lstm_bottlenecks.png")
+    plot_path = os.path.abspath(os.path.join(script_dir, "../../data/exploration_outputs/lstm_bottlenecks.png"))
     plt.savefig(plot_path, dpi=300)
     print(f"✅ Plot successfully saved to: {plot_path}")
     
