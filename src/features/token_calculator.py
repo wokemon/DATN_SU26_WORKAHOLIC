@@ -7,6 +7,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Pricing per 1,000,000 tokens (USD) configured exactly for your dataset
 MODEL_PRICING = {
     "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+    "claude-opus-4-6": {"input": 5.00, "output": 25.00},
     "minimax-m2.5": {"input": 0.15, "output": 1.15},
     "deepseek-v3.1": {"input": 0.21, "output": 0.28},
     "default": {"input": 1.00, "output": 2.00}
@@ -26,6 +27,8 @@ class TokenCalculator:
         
         if "sonnet" in name_lower or "claude" in name_lower:
             return "claude-sonnet-4-6"
+        elif "opus" in name_lower:
+            return "claude-opus-4-6"
         elif "minimax" in name_lower:
             return "minimax-m2.5"
         elif "deepseek" in name_lower:
