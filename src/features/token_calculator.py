@@ -24,11 +24,11 @@ class TokenCalculator:
             return "default"
             
         name_lower = raw_model_name.lower()
-        
-        if "sonnet" in name_lower or "claude" in name_lower:
-            return "claude-sonnet-4-6"
-        elif "opus" in name_lower:
+
+        if "opus" in name_lower:
             return "claude-opus-4-6"
+        elif "sonnet" in name_lower or "claude" in name_lower:
+            return "claude-sonnet-4-6"
         elif "minimax" in name_lower:
             return "minimax-m2.5"
         elif "deepseek" in name_lower:
@@ -59,13 +59,14 @@ class TokenCalculator:
             logging.error(f"Cannot calculate costs. Missing columns: {missing_cols}")
             raise KeyError(f"Missing columns: {missing_cols}")
 
-        df['turn_cost'] = df.apply(
-            lambda row: self.calculate_single_turn(
-                row[model_col], 
-                row[in_col], 
-                row[out_col]
-            ), axis=1
-        )
-        
+        model_keys = df[model_col].map(self.normalize_model_name)
+        input_rates = model_keys.map(lambda k: self.pricing_table.get(k, self.pricing_table["default"])["input"])
+        output_rates = model_keys.map(lambda k: self.pricing_table.get(k, self.pricing_table["default"])["output"])
+
+        in_toks = df[in_col].fillna(0).clip(lower=0)
+        out_toks = df[out_col].fillna(0).clip(lower=0)
+
+        df['turn_cost'] = (in_toks / 1_000_000) * input_rates + (out_toks / 1_000_000) * output_rates
+
         logging.info(f"Cost calculation complete. Total dataset cost: ${df['turn_cost'].sum():.4f}")
         return df

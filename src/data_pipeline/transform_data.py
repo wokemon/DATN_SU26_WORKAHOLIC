@@ -39,9 +39,15 @@ def process_agentic_traces(input_filepath: str, output_filepath: str, chunk_size
     
     # 2. Reassemble the lightweight dataset
     df_final: pd.DataFrame = pd.concat(lightweight_chunks, ignore_index=True)
-    
+
     # 3. Sequence Mapping
+    # turn_number relies on rows for a session appearing in chronological order in the
+    # source file. Capture the original row order explicitly and sort by it before the
+    # cumcount so this invariant holds even if chunks are ever produced/merged out of order.
+    df_final['_source_row_order'] = df_final.index
+    df_final = df_final.sort_values(['session_id', '_source_row_order']).reset_index(drop=True)
     df_final['turn_number'] = df_final.groupby('session_id').cumcount() + 1
+    df_final = df_final.drop(columns=['_source_row_order'])
     
     # 4. Cost Calculation (Using Modularized Feature)
     print("Applying token cost calculations via token_calculator module...")
