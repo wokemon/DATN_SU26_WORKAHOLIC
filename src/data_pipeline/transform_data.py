@@ -1,5 +1,12 @@
 import os
+import sys
 import pandas as pd
+
+# Allow running this file directly (e.g. `python src/data_pipeline/transform_data.py`)
+# by putting the repo root on sys.path so the `src` package resolves.
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 # Import the feature module we just created
 from src.features.token_calculator import TokenCalculator
