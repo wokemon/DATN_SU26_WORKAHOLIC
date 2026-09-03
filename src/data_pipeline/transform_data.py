@@ -85,18 +85,37 @@ def process_agentic_traces(input_filepath: str, output_filepath: str, chunk_size
     # previous turn in the same session. Turn 1 has no previous turn, so its
     # increment is its full (short) input — system prompt + initial task only,
     # which is expected to rarely trigger an error keyword on its own.
-    def incremental_text(group: pd.Series) -> pd.Series:
-        prev = group.shift(1).fillna("")
-        cur = group.fillna("").astype(str)
-        prev = prev.astype(str)
-        # cur is a superset of prev (prefix-superset) -> the new content is the suffix
-        # added since prev. Guard with startswith in case of any non-conforming rows.
-        return pd.Series(
-            [c[len(p):] if c.startswith(p) else c for c, p in zip(cur, prev)],
-            index=group.index,
-        )
+    import ast
 
-    df_final['_input_increment'] = df_final.groupby('session_id')['input'].transform(incremental_text)
+    def parse_messages(raw: str):
+        """input is a numpy-array repr of dicts after the CSV round-trip (elements
+        joined by '\\n ' inside brackets, not by ','), so it is NOT valid
+        Python/JSON literal syntax as-is. Normalize separators before parsing."""
+        if not isinstance(raw, str) or not raw.strip():
+            return []
+        text = raw.strip()
+        if text.startswith('[') and text.endswith(']'):
+            inner = text[1:-1]
+            # numpy object-array repr separates elements with whitespace/newlines,
+            # not commas -> insert ',' between adjacent '}...{' element boundaries.
+            inner = inner.replace('}\n {', '}, {').replace('} {', '}, {')
+            text = '[' + inner + ']'
+        try:
+            return ast.literal_eval(text)
+        except (ValueError, SyntaxError):
+            return []
+
+    def incremental_new_messages(group: pd.Series) -> pd.Series:
+        parsed = group.apply(parse_messages)
+        out = []
+        prev_len = 0
+        for msgs in parsed:
+            new_msgs = msgs[prev_len:] if len(msgs) >= prev_len else msgs
+            out.append(" ".join(str(m.get('content', '')) for m in new_msgs if isinstance(m, dict)))
+            prev_len = len(msgs)
+        return pd.Series(out, index=group.index)
+
+    df_final['_input_increment'] = df_final.groupby('session_id')['input'].transform(incremental_new_messages)
     df_final['has_error'] = df_final['_input_increment'].apply(check_for_errors)
 
     # Now safe to drop the heavy raw text columns.
